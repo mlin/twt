@@ -1,0 +1,268 @@
+\documentclass{article}
+\usepackage[top=0.5in,bottom=0.5in,left=0.5in,right=0.5in]{geometry}
+
+\begin{document}
+\pagestyle{empty}
+
+\setlength{\columnseprule}{1pt}
+\twocolumn
+\section*{{\tt ocaml+twt 0.90} quick reference}
+\noindent This sheet tries to concisely demonstrate most syntax forms recognized by the {\tt ocaml+twt} preprocessor. If you need more details, check the examples included with the distribution. All structural whitespace in the following examples is significant: if a line is indented here, it must be indented in your source.
+
+\subsection*{Applications}
+
+\begin{verbatim}
+List.iter
+ Printf.printf "%d\n"
+ lst
+
+List.map
+ function Some x -> x
+ List.filter
+  function
+   | Some x -> true
+   | None -> false
+  lst
+
+(if b then (+) else (-))
+ x
+ y
+\end{verbatim}
+
+\subsection*{Sequences}
+
+Nothing special:
+
+\begin{verbatim}
+statement-1
+statement-2
+...
+\end{verbatim}
+
+\subsection*{let}
+
+\noindent Let looks more like it would in a procedural language:
+
+\begin{verbatim}
+let x = 1
+sequence
+
+let rec f x =
+ sequence
+and g x =
+ sequence
+and h y =
+ sequence
+sequence
+
+let x = match y with
+ | pat1 -> csq1
+ | pat2 -> csq2
+sequence
+\end{verbatim}
+
+\begin{verbatim}
+let x = 1
+let y = 2
+sequence
+\end{verbatim}
+
+\noindent You can't put a let and its consequent on one line (e.g. {\tt let x = y in f x}).
+
+\subsection*{if-then-else}
+
+\begin{verbatim}
+if condition then expression
+
+if condition then
+ sequence
+
+if condition then expression else expression
+
+if condition then
+ sequence
+else
+ sequence
+
+if condition then
+ sequence
+else if condition then
+ sequence
+else
+ sequence 
+\end{verbatim}
+
+\subsection*{fun}
+
+Nothing special, but you don't need parentheses if the {\tt fun} is on its own line:
+\begin{verbatim}
+fun x y -> expression
+fun x y ->
+ sequence
+\end{verbatim}
+
+\subsection*{Pattern matching}
+
+All patterns occurring on their own line must be indented and have pipes:
+
+\begin{verbatim}
+function Some x -> true | None -> false
+
+match expression with
+ | pattern -> expression
+ | pattern ->
+    sequence
+ | pattern -> expression
+\end{verbatim}
+
+\noindent A {\tt match} or {\tt function} may appear on the same line as a {\tt let}:
+
+\begin{verbatim}
+let x = function
+ | pattern -> expression
+ ...
+sequence
+\end{verbatim}
+
+\subsection*{Exception handling}
+
+Nothing special, given the above forms for pattern matching:
+
+\begin{verbatim}
+try expression with Exception -> expression
+ 
+try
+ sequence
+with
+ | Exn1 -> expression
+ | Exn2 ->
+    sequence
+
+\end{verbatim}
+
+\subsection*{Records, lists, and arrays}
+
+\noindent The preprocesor ignores anything within curly braces or square brackets, including newlines. Thus, indentation within these operators doesn't matter, you still have to use {\tt ;} to separate items, and complicated expressions must be parenthesized.
+
+\begin{verbatim}
+type point = { x : int; y : int }
+type point = {
+     x : int;
+   y : int
+}
+
+if condition then
+ [ 1; 2 ]
+else
+ [ 2;
+   1 ]
+
+let x = [elem1; elem2]
+sequence
+
+let x = [elem1;
+         elem2;
+         ...   ]
+sequence
+
+let x =
+ { field1 = value1;
+   field2 = value2;
+   ...             }
+sequence
+\end{verbatim}
+
+\subsection*{Loops}
+
+Don't use {\tt done}:
+
+\begin{verbatim}
+for i = 1 to 10 do expression
+
+for i = 1 to 10 do
+ sequence
+
+while condition do expression
+
+while condition do
+ sequence
+\end{verbatim}
+
+\subsection*{Modules}
+
+Don't use {\tt end}:
+
+\begin{verbatim}
+module A = struct
+ type point = { x : int;
+                y : int }
+
+ let origin = { x = 0; y = 0 }
+
+ let reflect_x { x = a; y = b } =
+   { x = 0 - a;
+     y = b }
+\end{verbatim}
+
+\noindent The local module syntax is supported, but the {\tt struct} must start on its own line. For functors, {\tt module Name = functor ... ->} must appear as one line. See the {\tt modules.ml} example for details.
+
+\noindent Module signatures are the same, except without {\tt end}:
+
+\begin{verbatim}
+module A : sig
+ type point = { x : int;
+                y : int }
+ val origin : point
+ val reflect_x : point -> point
+\end{verbatim}
+
+\subsection*{Objects}
+
+\noindent Don't use {\tt end}. Method and initializer bodies are any other sequence. See the {\tt objects.ml} example for details.
+
+\begin{verbatim}
+class shape =
+object
+ method virtual area : unit -> float
+ 
+class circle =
+object (self)
+ inherit shape
+ val r = 1.0
+ method area () =
+  3.14159 *. r *. r
+\end{verbatim}
+
+\subsection*{Union types}
+
+\noindent The syntax rules for pattern matching apply:
+
+\begin{verbatim}
+type shape =
+ | Square
+ | Circle
+ | Triangle
+\end{verbatim}
+
+\subsection*{Combining expressions}
+
+\noindent Because {\tt ocaml+twt} is a line-oriented preprocessor, the following general rule applies when combining expressions on the same line:
+
+\vspace{0.5cm}
+
+\noindent \textbf{If an expression spans multiple lines, it must start on its own line.}
+
+\vspace{0.5cm}
+
+\noindent For example, the following will \textbf{not} work:
+
+\begin{verbatim}
+let lst2 = List.map 
+            string_of_float
+            lst1
+sequence
+\end{verbatim}
+
+\noindent The multi-line application in this example must start on a new line, rather than on the same line as its containing expression. (Alternatively, you could just make it one parenthesized line.) There are a few exceptions to this rule: loops, local module structures, and immediate objects must always start on their own line (even if they are only one line), {\tt match} and {\tt function} may appear on the same line as a {\tt let} (even if their patterns are on individual lines), and records, lists, and arrays may span multiple lines as previously described.
+
+\end{document}
