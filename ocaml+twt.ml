@@ -172,6 +172,7 @@ type line_type =
 
   | Type
   | Val
+  | Include
 
   | Module
   | ModuleType
@@ -207,6 +208,7 @@ let line_res =
 	("type",Type);
 	("val",Val);
 	("val!",Val);
+	("include",Include);
 	("module[ \t]+type",ModuleType);
 	("module",Module);
 	("struct",Struct);
@@ -401,6 +403,7 @@ let string_of_ty = function
   | OptionalOperand -> "Opt"
   | Constraint -> "Cns"
   | Exception -> "Exn"
+  | Include -> "Inc"
 ;;
 let rec print_block_syntax pfx level syntax =
   List.iter
@@ -603,6 +606,8 @@ and form_module_type_contents = function
       endl ^ line ^ (form_module_type_contents rest)
   | (Line (Val,_,line)) :: rest ->
       endl ^ line ^ (form_module_type_contents rest)
+  | (Line (Include,_,line)) :: rest ->
+      endl ^ line ^ (form_module_type_contents rest)
 
   | (Line (Module,_,line)) :: (Block ((Line (Sig,_,_) :: _) as block)) :: rest
   | (Line (ModuleType,_,line)) :: (Block ((Line (Sig,_,_) :: _) as block)) :: rest ->
@@ -642,6 +647,8 @@ and form_module_contents form_rest = function
       endl ^ typeline ^ (form_ands form_rest rest)
 
   | (Line (Open,_,line)) :: rest ->
+      endl ^ line ^ (form_rest rest)
+  | (Line (Include,_,line)) :: rest ->
       endl ^ line ^ (form_rest rest)
 
   | (Line (Exception,_,line)) :: rest ->
