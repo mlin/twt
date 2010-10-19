@@ -100,6 +100,12 @@ to the source code. This means you usually want ocaml+twt last.
 VERSION HISTORY
 ---------------
 
+??/??/?? version 0.93
+- Handle OCaml 3.12's new 'include module type of...' in module
+  signatures
+- Allow pass-through of named operands in applications: f ~x
+
+
 08/02/10 version 0.92
 - Accepts piped input
 - Supports output to file (new option -o)

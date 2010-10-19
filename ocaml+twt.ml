@@ -232,7 +232,7 @@ let line_res =
 	(Str.regexp "\".*",Quote);
 	(Str.regexp "'.*",Quote);
 	(Str.regexp "object(.*",Object);
-	(Str.regexp "~[a-zA-Z0-9'_]+:.*",NamedOperand);
+	(Str.regexp "~[a-zA-Z0-9'_]+.*",NamedOperand);
 	(Str.regexp "\\?[a-zA-Z0-9'_]+.*",OptionalOperand);
 	(Str.regexp "[a-zA-Z0-9!`#].*",Identifier)
       ]
