@@ -69,7 +69,7 @@ let update_lexical_state oldstate s =
 	  let litchar = less && s.[i-1] = '\'' && more && s.[i+1] = '\'' in
 	match s.[i] with
       | _ when !escape -> escape := false
-      | '\\' when (!quote || !squote) -> escape := true
+      | '\\' when (!quote || !squote) && not (i = len-1) -> escape := true
 	  | '"' when !comment = 0 && not !quote && not litchar -> quote := true
 	  | '"' when !quote && (not !escape) -> quote := false
 	  | '\'' when !comment = 0 && not !quote && not !squote && (not less || (List.mem s.[i-1] ('\r' :: '\n' :: whitespace_chars))) -> squote := true (* lousy hack to ignore identifiers with primes *)
@@ -445,6 +445,8 @@ let rec form_expression form_rest = function
 *)
   | (Line (If,_,ifline)) :: (Block block) :: rest ->
       endl ^ ifline ^ " begin" ^ (form_sequence block) ^ " end" ^ (form_elses form_rest rest)
+  | (Line (If,_,ifline)) :: rest ->
+      endl ^ ifline ^ (form_elses form_rest rest)
 
   | (Line (loopty,_,loopline)) :: (Block block) :: rest when loopty = For || loopty = While ->
       endl ^ loopline ^ (form_sequence block) ^ " done" ^ (form_rest rest)
