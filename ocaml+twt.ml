@@ -469,7 +469,15 @@ let rec form_expression form_rest = function
 	(match rest with
 	     PipeBlock patterns :: rest ->
 	       (form_patterns patterns) ^ (form_rest rest)
+	   | Block block :: rest -> " begin" ^ (form_sequence block) ^ " end" ^ (form_rest rest)
 	   | _ -> form_rest rest)
+	   
+  | (Line (Try,_,tryline)) :: (Line (With,_,withline)) :: rest ->
+      endl ^ tryline ^ endl ^ withline ^
+	     (match rest with
+		     | PipeBlock patterns :: rest -> (form_patterns patterns) ^ (form_rest rest)
+			 | Block block :: rest -> " begin" ^ (form_sequence block) ^ " end" ^ (form_rest rest)
+			 | _ -> form_rest rest)
 
   (* immediate objects *)
   | (Line (Object,_,line)) :: (Block block) :: rest ->
