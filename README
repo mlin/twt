@@ -1,6 +1,6 @@
 ======================================================================
                    "The Whitespace Thing" for OCaml
-                                v0.92
+                                v0.93
              http://people.csail.mit.edu/mikelin/ocaml+twt/
 
                      by Mike Lin (mikelin@mit.edu)
@@ -100,11 +100,17 @@ to the source code. This means you usually want ocaml+twt last.
 VERSION HISTORY
 ---------------
 
-??/??/?? version 0.93
+02/01/12 version 0.93
 - Handle OCaml 3.12's new 'include module type of...' in module
   signatures
 - Allow pass-through of named operands in applications: f ~x
-
+- Allow one-liner consequents for predicates:
+    if pred1 then consq1
+    else if pred2 then consq2
+    else consq3
+- Allow one-liner try and with bodies (similar):
+    try expr1
+    with Not_found -> expr2
 
 08/02/10 version 0.92
 - Accepts piped input
