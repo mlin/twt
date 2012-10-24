@@ -1,6 +1,6 @@
 ======================================================================
                    "The Whitespace Thing" for OCaml
-                                v0.93
+                                v0.931
              http://people.csail.mit.edu/mikelin/ocaml+twt/
 
                      by Mike Lin (mikelin@mit.edu)
@@ -27,10 +27,10 @@ To install, run
 
 make install
 
-This installs the executable in the same directory as ocamlc. To
-override this, use:
+This installs the executables to PREFIX/bin where PREFIX=/usr/local
+You may override PREFIX like so:
 
-make INSTALLDIR=/some/path install
+make install PREFIX=/home/alice
 
 -----
 USAGE
@@ -99,6 +99,9 @@ to the source code. This means you usually want ocaml+twt last.
 ---------------
 VERSION HISTORY
 ---------------
+
+10/24/12 version 0.931
+- Minor changes to installation procedure to support packaging
 
 02/01/12 version 0.93
 - Handle OCaml 3.12's new 'include module type of...' in module

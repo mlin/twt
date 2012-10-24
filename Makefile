@@ -1,5 +1,4 @@
-OCAMLCWHERE:=$(shell which ocamlc)
-INSTALLDIR:=$(shell dirname $(OCAMLCWHERE))
+PREFIX:=/usr/local
 DOCLEAN=rm -f *.cmi *.cmi *.cmo *.o *.cmx *~
 
 all: ocaml+twt ppcompose
@@ -17,8 +16,6 @@ clean:
 	rm -f ocaml+twt ppcompose
 
 install: all
-	cp ocaml+twt ppcompose $(INSTALLDIR)
-experimental: all
-	cp ocaml+twt $(INSTALLDIR)/ocaml+twtx
+	cp ocaml+twt ppcompose $(DESTDIR)$(PREFIX)/bin
 uninstall:
-	rm -f $(INSTALLDIR)/ocaml+twt $(INSTALLDIR)/ppcompose
+	rm -f $(DESTDIR)$(PREFIX)/bin/ocaml+twt $(DESTDIR)$(PREFIX)/bin/ppcompose
