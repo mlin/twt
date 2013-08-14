@@ -14,11 +14,13 @@ type whitespace_mode =
   | Space_only
 
 type configuration = {
-  mutable whitespace_mode : whitespace_mode
+  mutable whitespace_mode : whitespace_mode;
+  mutable lwt : bool
 }
 
 let config = {
-  whitespace_mode = Either
+  whitespace_mode = Either;
+  lwt = false
 }
 
 let endl = "\n"
@@ -187,41 +189,44 @@ type line_type =
   | Constraint
 
 let line_res =
+  let keyword_spec = [
+    ("let",Let);
+    ("in",In);
+    ("and",And);
+    ("if",If);
+    ("else",Else);
+    ("for",For);
+    ("while",While);
+    ("match",Match);
+    ("function",Function);
+    ("try",Try);
+    ("with",With);
+    ("open",Open);
+    ("exception",Exception);
+    ("fun",Fun);
+    ("type",Type);
+    ("val",Val);
+    ("val!",Val);
+    ("include",Include);
+    ("module[ \t]+type",ModuleType);
+    ("module",Module);
+    ("struct",Struct);
+    ("sig",Sig);
+    ("class",Class);
+    ("object",Object);
+    ("method",Method);
+    ("method!",Method);
+    ("initializer",Initializer);
+    ("inherit",Inherit);
+    ("inherit!",Inherit);
+    ("constraint",Constraint)
+  ] @ (if not config.lwt then [] else
+       ["lwt", Let; "for_lwt", For; "while_lwt", While; "match_lwt", Match; "try_lwt", Try])
+  in
   let keyword_res =
     List.map
       (fun (keyword,ty) -> (Str.regexp (keyword ^ "\\([ \t]+\\|$\\)"),ty))
-      [
-	("let",Let);
-	("in",In);
-	("and",And);
-	("if",If);
-	("else",Else);
-	("for",For);
-	("while",While);
-	("match",Match);
-	("function",Function);
-	("try",Try);
-	("with",With);
-	("open",Open);
-	("exception",Exception);
-	("fun",Fun);
-	("type",Type);
-	("val",Val);
-	("val!",Val);
-	("include",Include);
-	("module[ \t]+type",ModuleType);
-	("module",Module);
-	("struct",Struct);
-	("sig",Sig);
-	("class",Class);
-	("object",Object);
-	("method",Method);
-	("method!",Method);
-	("initializer",Initializer);
-	("inherit",Inherit);
-	("inherit!",Inherit);
-	("constraint",Constraint)
-      ]
+      keyword_spec
   in
       keyword_res @
       [
@@ -761,6 +766,7 @@ let arg_spec =
       ("-tabonly",Arg.Unit (fun () -> config.whitespace_mode <- Tab_only)," only allow tabs for indentation");
       ("-ml",Arg.Unit (fun () -> ty := Some ML)," consider the input an implementation (.ml) file, regardless of its extension");
       ("-mli",Arg.Unit (fun () -> ty := Some MLI)," consider the input an interface (.mli) file, regardless of its extension");
+      ("-lwt",Arg.Unit (fun () -> config.lwt <- true)," support Lwt syntax extension keywords: lwt, {try,for,raise}_lwt");
       ("-showblocks",Arg.Set(showblocks)," (for debugging) print the source code's block structure to standard error")
     ];;
 
