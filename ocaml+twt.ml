@@ -202,6 +202,7 @@ let line_res =
     ("try",Try);
     ("with",With);
     ("open",Open);
+    ("open!",Open);
     ("exception",Exception);
     ("fun",Fun);
     ("type",Type);
