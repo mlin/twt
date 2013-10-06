@@ -1,5 +1,6 @@
 # "The Whitespace Thing" for OCaml
 http://people.csail.mit.edu/mikelin/ocaml+twt/
+
 http://github.com/mlin/twt
 
 **Maintainer: [Mike Lin](https://blog.mlin.net/)**
@@ -15,8 +16,8 @@ a camlp4 syntax (although this promises to be difficult).
 ### Installation
 
 ocaml+twt is available in [OPAM](http://opam.ocamlpro.com):
-`opam install twt`. The ocaml+twt executable is then available as long as you
-`eval $(opam config env)`.
+`opam install twt`. Once installed, the ocaml+twt executable is available in
+your path when you `eval $(opam config env)`.
 
 Without OPAM, extract the source tarball and `make install`.  This installs
 the executable in the same directory as ocamlc. To override this, use
@@ -29,21 +30,21 @@ and pipe the results to a file, or use the preprocessor flag to ocamlc:
 
 ```ocamlc -pp ocaml+twt mycode.ml```
 
-There are a few options available for the preprocessor. They are pretty self-
-explanatory by looking at the usage printed by invoking ocaml+twt.
+There are a few options available for the preprocessor. They're pretty
+self-explanatory by looking at the usage printed by invoking ocaml+twt.
 
-With ocamlbuild, you can add something like this to the _tags file in your
-project directory:
+With ocamlbuild, you can just add something like this to the _tags file in
+your project directory:
 
-<**/*.ml> or <**/*.mli>: pp(ocaml+twt)
+```<**/*.ml> or <**/*.mli>: pp(ocaml+twt)```
 
 If you use OCamlMakefile, you can make the first line of your file
 `(*pp ocaml+twt *)`.
 
 ### Language documentation
 
-See the [quick reference](https://github.com/mlin/twt/blob/master/doc/quick_reference.pdf),
-and the [examples subdirectory](https://github.com/mlin/twt/tree/master/examples).
+See the [quick reference](https://github.com/mlin/twt/raw/master/doc/quick_reference.pdf),
+and the [examples/](https://github.com/mlin/twt/tree/master/examples).
 
 ### ppcompose utility
 
