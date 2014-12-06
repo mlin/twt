@@ -56,10 +56,10 @@ let random_base gc_content =
   [| 'G'; 'C'; 'A'; 'U' |].(!i)
 
 let random_seq gc_content len =
-  let s = String.create len
+  let s = Bytes.create len
   for i = 0 to len - 1 do
-    s.[i] <- random_base gc_content
-  s
+    Bytes.set s i (random_base gc_content)
+  Bytes.to_string s
 
 (* test trials *)
 
