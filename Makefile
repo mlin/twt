@@ -9,14 +9,17 @@ ocaml+twt: ocaml+twt.ml
 ppcompose: ocaml+twt ppcompose.ml
 	ocamlc -o ppcompose -pp ./ocaml+twt ppcompose.ml
 
-test: ocaml+twt
-	find examples/ -type f -name "*.ml*" | xargs -iXXX -n 1 bash -cex "ocamlc -safe-string -c -pp ./ocaml+twt XXX"
+ppx_nop: ppx_nop.ml
+	ocamlfind ocamlc -package compiler-libs.common -o ppx_nop ocamlcommon.cma ppx_nop.ml
+
+test: ocaml+twt ppx_nop
+	find examples/ -type f -name "*.ml*" | xargs -t -n 1 ocamlc -safe-string -c -pp ./ocaml+twt -ppx ./ppx_nop
 
 clean:
 	$(DOCLEAN)
 	cd examples; $(DOCLEAN)
 	cd doc; rm -f *.log *~ *.aux
-	rm -f ocaml+twt ppcompose
+	rm -f ocaml+twt ppcompose ppx_nop
 
 install: all
 	cp ocaml+twt ppcompose $(DESTDIR)$(PREFIX)/bin

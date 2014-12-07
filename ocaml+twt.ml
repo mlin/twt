@@ -226,7 +226,7 @@ let line_res =
   in
   let keyword_res =
     List.map
-      (fun (keyword,ty) -> (Str.regexp (keyword ^ "\\([ \t]+\\|$\\)"),ty))
+      (fun (keyword,ty) -> (Str.regexp (keyword ^ "\\([ \t]+\\|$\\|%\\)"),ty))
       keyword_spec
   in
   keyword_res @
