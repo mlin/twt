@@ -3,7 +3,7 @@ http://people.csail.mit.edu/mikelin/ocaml+twt/
 
 http://github.com/mlin/twt
 
-**Maintainer: [Mike Lin](https://blog.mlin.net/)**
+**Maintainer: [Mike Lin](http://www.mlin.net/)**
 
 "The Whitespace Thing" for OCaml is a preprocessor (invoked as ocaml+twt) that
 uses indentation to auto-parenthesize multiline expressions, as in Python and
@@ -58,6 +58,9 @@ The last preprocessor specified on the command line is applied first to the
 source code. This means you usually want to put ocaml+twt last.
 
 ### Version history
+
+7/5/15 version 0.93.3
+- Pass through ppx extension points
 
 10/05/13 version 0.93.2
 - New OCaml 4.01 keyword: open!
