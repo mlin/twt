@@ -1,5 +1,4 @@
 # "The Whitespace Thing" for OCaml
-http://people.csail.mit.edu/mikelin/ocaml+twt/
 
 http://github.com/mlin/twt
 
@@ -10,8 +9,136 @@ uses indentation to auto-parenthesize multiline expressions, as in Python and
 Haskell, thus eliminating a lot of syntax clutter.
 
 Version 1 is implemented as a line-oriented preprocessor; this is something of
-a hack. At some unspecified time in the future, Version 2 should be written as
-a camlp4 syntax (although this promises to be difficult).
+a hack. At some unspecified time in the future, it should be rewritten with a
+proper syntax tree parser, although the current approach honestly gets quite
+far.
+
+### Code examples
+
+<table style="vertical-align: top">
+<tr>
+<td>
+<strong>ocaml</strong>
+</td>
+<td>
+<strong>ocaml+twt</strong>
+</td>
+</tr>
+<tr>
+<td>
+<pre>
+let rec main magic_number =
+ Printf.printf "Your guess? ";
+ let guess = int_of_string (read_line ()) in
+  if guess > magic_number then
+   (Printf.printf "Too high!\n";
+    main magic_number)
+  else if guess < magic_number then
+   (Printf.printf "Too low!\n";
+    main magic_number)
+  else
+   (Printf.printf "You win!\n";
+    exit 0);;
+
+Random.self_init ();;
+
+main (Random.int 100);;
+</pre>
+</td>
+<td>
+<pre>
+let rec main magic_number =
+ Printf.printf "Your guess? "
+ let guess = int_of_string (read_line ())
+ if guess > magic_number then
+  Printf.printf "Too high!\n"
+  main magic_number
+ else if guess < magic_number then
+  Printf.printf "Too low!\n"
+  main magic_number
+ else
+  Printf.printf "You win!\n"
+  exit 0
+
+Random.self_init ()
+
+main (Random.int 100)
+</pre>
+</td>
+</tr>
+<tr>
+<td>
+<pre>
+let list_out lst =
+ (List.map
+  (function Some x -> x)
+  (List.filter
+   (function Some x -> true | None -> false)
+   lst))
+</pre>
+</td>
+<td>
+<pre>
+let list_out lst =
+ List.map
+  function Some x -> x
+  List.filter
+   function Some x -> true | None -> false
+   lst
+</pre>
+</td>
+</tr>
+<tr>
+<td>
+<pre>
+for i = 1 to 10 do
+ print_int i;
+ print_newline ()
+done;
+print_string "done"
+</pre>
+</td>
+<td valign="top">
+<pre>
+for i = 1 to 10 do
+ print_int i
+ print_newline ()
+print_string "done"
+</pre>
+</td>
+</tr>
+<tr>
+<td>
+<pre>
+let contrived = function
+   s when (String.length s) > 0 ->
+    begin
+     try
+      Some (float_of_string s)
+     with
+      Failure _ -> Some nan
+    end
+ | _ -> None
+</pre>
+</td>
+<td valign="top">
+<pre>
+let contrived = function
+ | s when (String.length s) > 0 ->
+    try
+     Some (float_of_string s)
+    with
+     | Failure _ -> Some nan
+ | _ -> None
+</pre>
+</td>
+</tr>
+</table>
+
+### Language documentation
+
+See the [quick reference](https://github.com/mlin/twt/raw/master/doc/quick_reference.pdf),
+and the longer [examples/](https://github.com/mlin/twt/tree/master/examples).
 
 ### Installation
 
@@ -30,10 +157,10 @@ and pipe the results to a file, or use the preprocessor flag to ocamlc:
 
 ```ocamlc -pp ocaml+twt mycode.ml```
 
-There are a few options available for the preprocessor. They're pretty
-self-explanatory by looking at the usage printed by invoking ocaml+twt.
+There are a few optional behaviors available for the preprocessor. They're
+pretty self-explanatory by looking at the usage printed by invoking ocaml+twt.
 
-With ocamlbuild, you can just add something like this to the _tags file in
+With ocamlbuild, you can just add something like this to the `_tags` file in
 your project directory:
 
 ```<**/*.ml> or <**/*.mli>: pp(ocaml+twt)```
@@ -41,10 +168,90 @@ your project directory:
 If you use OCamlMakefile, you can make the first line of your file
 `(*pp ocaml+twt *)`.
 
-### Language documentation
+### Tips and FAQs
 
-See the [quick reference](https://github.com/mlin/twt/raw/master/doc/quick_reference.pdf),
-and the [examples/](https://github.com/mlin/twt/tree/master/examples).
+* **Parentheses:** The preprocessor completely ignores anything inside parentheses, including newlines. Thus, any sub-expressions also need to be parenthesized, regardless of how they're indented. Occasionally, parenthesization is useful to work around the preprocessor if it doesn't understand some obscure OCaml syntax.
+* **Performance:** The syntax transform does not add any expressions or statements, only parentheses. Thus, there should be no performance impact in the final product.
+* **Comments:** should not occur (or terminate) at the *beginning* of a line that also has code on it.
+* **ocamldoc:** You should be able to comment things as usual and run ocamldoc on the *postprocessed* code.
+* **Toplevel:** no support and none likely, sorry.
+* **Pattern matching:** If the consequence of a pattern is a sequence of statements, make sure to place them either all on one line (separated by ;) or entirely in their own block. That is:
+<table>
+<tr>
+<td>
+instead of...
+</td>
+<td>
+do...
+</td>
+</tr>
+<tr>
+<td valign="top">
+<pre>
+match n with
+  | 1 -> print_string "one"
+         print_endline ()
+</pre>
+</td>
+<td>
+<pre>
+match n with
+  | 1 ->
+     print_string "one"
+     print_endline ()
+</pre>
+</td>
+</tr> 
+</table>
+Of course, if the consequent is just a single expression, you can place it on the same line. This restriction is actually true almost everywhere, such as let bodies and if-then consequents; see the quick reference. The rule of thumb: **if an expression spans multiple lines, it must begin on its own line.**
+* **Applications:** In multi-line function applications, if the function being applied is some complicated expression (rather than just an identifier), you must parenthesize it:
+<table>
+<tr>
+<td>
+instead of...
+</td>
+<td>
+do...
+</td>
+</tr>
+<tr>
+<td valign="top">
+<pre>
+if b then (+) else (-)
+  x
+  y
+</pre>
+</td>
+<td>
+<pre>
+(if b then (+) else (-))
+  x
+  y
+</pre>
+</td>
+</tr> 
+<tr>
+<td valign="top">
+<pre>
+function
+  | x when x >= 0 -> (+)
+  | _ -> (-)
+  x
+  y
+</pre>
+</td>
+<td valign="top">
+<pre>
+(function
+  | x when x >= 0 -> (+)
+  | _ -> (-))
+  x
+  y
+</pre>
+</td>
+</tr>
+</table>
+
 
 ### ppcompose utility
 
@@ -56,6 +263,12 @@ one can compose a list comprehension camlp4 syntax with ocaml+twt as follows:
 
 The last preprocessor specified on the command line is applied first to the
 source code. This means you usually want to put ocaml+twt last.
+
+### Useful links
+
+* [Understanding GNU Emacs and Tabs](http://www.pement.org/emacs_tabs.htm)
+* [Python: Myths about Indentation](http://www.secnetix.de/~olli/Python/block_indentation.hawk), largely applicable to ocaml+twt as well
+* [F# lightweight syntax](http://blogs.msdn.com/dsyme/archive/2006/08/24/715626.aspx), a similar idea for the OCaml-derived language for .NET. The lightweight syntax seems to be much more popular than the "normal" syntax among F# users. (For the record, ocaml+twt [preceded this](http://groups.google.com/group/fa.caml/browse_thread/thread/50009fed6088f114/4e5d40b372f87878?lnk=gst&q=ocaml%2Btwt#4e5d40b372f87878) by about nine months; I don't know if there was any causal relationship.)
 
 ### Version history
 
