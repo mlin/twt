@@ -5,13 +5,20 @@ http://github.com/mlin/twt
 **Maintainer: [Mike Lin](http://www.mlin.net/)**
 
 "The Whitespace Thing" for OCaml is a preprocessor (invoked as ocaml+twt) that
-uses indentation to auto-parenthesize multiline expressions, as in Python and
-Haskell, thus eliminating a lot of syntax clutter.
+uses indentation to auto-parenthesize multi-line expressions, like in Python and
+Haskell. Using natural indentation patterns, it eliminates:
+
+* the `;` operator for statement sequences and the `;;` top-level statement operator
+* multi-line parenthesization nested function applications
+* ambiguity involving nested let, if-else, and try-with expressions, and resulting parentheses
+* the parenthetical keywords `in`, `done`, `begin`, and `end`
+
+The syntax is otherwise the same as OCaml, with a few restrictions.
 
 Version 1 is implemented as a line-oriented preprocessor; this is something of
 a hack. At some unspecified time in the future, it should be rewritten with a
 proper syntax tree parser, although the current approach honestly gets quite
-far.
+far!
 
 ### Code examples
 
