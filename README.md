@@ -33,6 +33,7 @@ far!
 </tr>
 <tr>
 <td>
+<sub>
 <pre>
 let rec main magic_number =
  Printf.printf "Your guess? ";
@@ -51,8 +52,10 @@ Random.self_init ();;
 
 main (Random.int 100);;
 </pre>
+</sub>
 </td>
 <td>
+<sub>
 <pre>
 let rec main magic_number =
  Printf.printf "Your guess? "
@@ -71,10 +74,12 @@ Random.self_init ()
 
 main (Random.int 100)
 </pre>
+</sub>
 </td>
 </tr>
 <tr>
 <td>
+<sub>
 <pre>
 let list_out lst =
  (List.map
@@ -83,8 +88,10 @@ let list_out lst =
    (function Some x -> true | None -> false)
    lst))
 </pre>
+</sub>
 </td>
 <td>
+<sub>
 <pre>
 let list_out lst =
  List.map
@@ -93,10 +100,12 @@ let list_out lst =
    function Some x -> true | None -> false
    lst
 </pre>
+</sub>
 </td>
 </tr>
 <tr>
 <td>
+<sub>
 <pre>
 for i = 1 to 10 do
  print_int i;
@@ -104,18 +113,22 @@ for i = 1 to 10 do
 done;
 print_string "done"
 </pre>
+</sub>
 </td>
 <td valign="top">
+<sub>
 <pre>
 for i = 1 to 10 do
  print_int i
  print_newline ()
 print_string "done"
 </pre>
+</sub>
 </td>
 </tr>
 <tr>
 <td>
+<sub>
 <pre>
 let contrived = function
    s when (String.length s) > 0 ->
@@ -127,8 +140,10 @@ let contrived = function
     end
  | _ -> None
 </pre>
+</sub>
 </td>
 <td valign="top">
+<sub>
 <pre>
 let contrived = function
  | s when (String.length s) > 0 ->
@@ -138,6 +153,7 @@ let contrived = function
      | Failure _ -> Some nan
  | _ -> None
 </pre>
+</sub>
 </td>
 </tr>
 </table>
