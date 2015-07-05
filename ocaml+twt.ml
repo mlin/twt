@@ -43,6 +43,26 @@ let indent_count line =
 let is_blank line =
   (indent_count line) = (String.length line) || (Str.string_match comment_line_re line 0) 
 
+let quotestr_begin s i =
+  let l = String.length s in
+  if i >= l || s.[i] <> '{' then None
+  else
+    let rec loop id j =
+      if j >= l then None
+      else
+        match s.[j] with
+          | 'a' .. 'z' -> loop (id ^ String.make 1 s.[j]) (j+1)
+          | '|' -> Some id
+          | _ -> None
+    in
+    loop "" (i+1)
+
+let quotestr_end id s i =
+  let idlen = String.length id in
+  if String.length s - i < idlen+2 then false
+  else if s.[i] <> '|' then false
+  else String.sub s (i+1) (idlen+1) = id ^ "}"
+
 type lexical_state =
   {
     quote : bool;
@@ -51,8 +71,11 @@ type lexical_state =
     comment : int;
     paren : int;
     square : int;
-    curly : int
+    curly : int;
+    quotestr : string option
   }
+
+exception Quotestr of string*int
 
 let update_lexical_state oldstate s =
   let quote = ref oldstate.quote in
@@ -62,32 +85,55 @@ let update_lexical_state oldstate s =
   let paren = ref oldstate.paren in
   let square = ref oldstate.square in
   let curly = ref oldstate.curly in
+  let quotestr = ref oldstate.quotestr in
   let inc x = x := 1 + !x in
   let dec x = x := !x - 1 in
   let len = String.length s in
-  for i = 0 to len - 1 do
-    let more = i < (len - 1) in
-    let less = i > 0 in
-    let litchar = less && s.[i-1] = '\'' && more && s.[i+1] = '\'' in
-    match s.[i] with
-    | _ when !escape -> escape := false
-    | '\\' when (!quote || !squote) && not (i = len-1) -> escape := true
-    | '"' when !comment = 0 && not !quote && not litchar -> quote := true
-    | '"' when !quote && (not !escape) -> quote := false
-    | '\'' when !comment = 0 && not !quote && not !squote && (not less || (List.mem s.[i-1] ('\r' :: '\n' :: whitespace_chars))) -> squote := true (* lousy hack to ignore identifiers with primes *)
-    | '\'' when !squote && (not !escape) -> squote := false
-    | '(' when more && s.[i+1] = '*' && not !quote -> inc comment
-    | ')' when less && s.[i-1] = '*' && not !quote -> dec comment
-    | '(' when !comment = 0 && not !quote && not litchar -> inc paren
-    | ')' when !comment = 0 && not !quote && not litchar -> dec paren
-    | '[' when !comment = 0 && not !quote && not litchar -> inc square
-    | ']' when !comment = 0 && not !quote && not litchar -> dec square
-    | '{' when !comment = 0 && not !quote && not litchar -> inc curly
-    | '}' when !comment = 0 && not !quote && not litchar -> dec curly
-    | _ -> ()
-  done;
+
+  let rec update lo =
+    try
+      for i = lo to len - 1 do
+        let more = i < (len - 1) in
+        let less = i > 0 in
+        let litchar = less && s.[i-1] = '\'' && more && s.[i+1] = '\'' in
+        match s.[i] with
+        | _ when !escape -> escape := false
+        | '\\' when (!quote || !squote) && not (i = len-1) -> escape := true
+        | '"' when !comment = 0 && not !quote && not litchar -> quote := true
+        | '"' when !quote && (not !escape) -> quote := false
+        | '\'' when !comment = 0 && not !quote && not !squote && (not less || (List.mem s.[i-1] ('\r' :: '\n' :: whitespace_chars))) -> squote := true (* lousy hack to ignore identifiers with primes *)
+        | '\'' when !squote && (not !escape) -> squote := false
+        | '(' when more && s.[i+1] = '*' && not !quote -> inc comment
+        | ')' when less && s.[i-1] = '*' && not !quote -> dec comment
+        | '(' when !comment = 0 && not !quote && not litchar -> inc paren
+        | ')' when !comment = 0 && not !quote && not litchar -> dec paren
+        | '[' when !comment = 0 && not !quote && not litchar -> inc square
+        | ']' when !comment = 0 && not !quote && not litchar -> dec square
+        | '{' when !comment = 0 && not !quote && not litchar ->
+            (match quotestr_begin s i with
+              | None -> inc curly
+              | Some id -> raise (Quotestr(id,i+String.length id+2)))
+        | '}' when !comment = 0 && not !quote && not litchar -> dec curly
+        | _ -> ()
+      done
+    with Quotestr (id,lo) -> in_quotestr id lo
+  and in_quotestr id lo =
+    try
+      for i = lo to len-1 do
+        match s.[i] with
+          | '|' when quotestr_end id s i -> raise (Quotestr(id,i+String.length id+2))
+          | _ -> ()
+      done;
+      (* we get to the end without the end of the quoted string; save the state
+         until the next line *)
+      quotestr := Some id
+    with Quotestr (id,lo) -> (quotestr := None; update lo)
+  in
+  (match !quotestr with
+    | None -> update 0;
+    | Some id -> in_quotestr id 0);
   { quote = !quote; squote = false; escape = !escape; comment = !comment;
-    paren = max 0 !paren; square = !square; curly = !curly }
+    paren = max 0 !paren; square = !square; curly = !curly; quotestr = !quotestr }
 
 class line_reader chan =
   object(self)
@@ -101,7 +147,8 @@ class line_reader chan =
         comment = 0;
         paren = 0;
         square = 0;
-        curly = 0
+        curly = 0;
+        quotestr = None
       }
     val mutable post_lexical_state =
       {
@@ -111,7 +158,8 @@ class line_reader chan =
         comment = 0;
         paren = 0;
         square = 0;
-        curly = 0
+        curly = 0;
+        quotestr = None
       }
 
     method lexical_state () = pre_lexical_state
@@ -293,7 +341,7 @@ let parse_pass1 reader =
     match try Some (reader#peek ()) with End_of_file -> None with
       Some line ->
       let lexstate = reader#lexical_state () in
-      if lexstate.quote || lexstate.comment > 0 || lexstate.square > 0 || lexstate.curly > 0 || lexstate.paren > 0 then
+      if lexstate.quote || lexstate.comment > 0 || lexstate.square > 0 || lexstate.curly > 0 || lexstate.paren > 0 || lexstate.quotestr <> None then
         begin
           reader#drop ();
           endl ^ line ^ (dangling_lines ())

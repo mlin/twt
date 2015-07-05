@@ -296,7 +296,8 @@ source code. This means you usually want to put ocaml+twt last.
 ### Version history
 
 7/5/15 version 0.93.3
-- Pass through ppx extension points
+- New OCaml 4.02 features: quoted strings and ppx infix extension
+  nodes (both are simply passed through)
 
 10/05/13 version 0.93.2
 - New OCaml 4.01 keyword: open!
